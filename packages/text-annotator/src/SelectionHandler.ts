@@ -31,6 +31,8 @@ export const SelectionHandler = (
 
   let isLeftClick = false;
 
+  let annotationClick = false;
+
   let lastPointerDown: PointerEvent | undefined;
 
   const onSelectStart = (evt: PointerEvent) => {
@@ -76,13 +78,13 @@ export const SelectionHandler = (
 
     const selectionRange = sel.getRangeAt(0);
     if (isWhitespaceOrEmpty(selectionRange)) return;
-    
+
     const annotatableRanges = splitAnnotatableRanges(selectionRange.cloneRange());
 
     const hasChanged =
       annotatableRanges.length !== currentTarget.selector.length ||
       annotatableRanges.some((r, i) => r.toString() !== currentTarget.selector[i]?.quote);
-      
+
     if (!hasChanged) return;
 
     currentTarget = {
@@ -96,7 +98,7 @@ export const SelectionHandler = (
     } else {
       // Proper lifecycle management: clear selection first...
       selection.clear();
-      
+
       // ...then add annotation to store...
       store.addAnnotation({
         id: currentTarget.annotation,
@@ -139,10 +141,13 @@ export const SelectionHandler = (
       if (hovered) {
         const { selected } = selection;
 
-        if (selected.length !== 1 || selected[0].id !== hovered.id)
+        if (selected.length !== 1 || selected[0].id !== hovered.id) {
           selection.userSelect(hovered.id, evt);
+          annotationClick = true;
+        }
       } else if (!selection.isEmpty()) {
         selection.clear();
+        annotationClick = false;
       }
     }
 
@@ -154,6 +159,7 @@ export const SelectionHandler = (
       clickSelect();
     } else if (currentTarget) {
       selection.userSelect(currentTarget.annotation, evt);
+      annotationClick = false;
     }
   }
 
@@ -162,15 +168,18 @@ export const SelectionHandler = (
   const destroy = () => {
     container.removeEventListener('selectstart', onSelectStart);
     document.removeEventListener('selectionchange', onSelectionChange);
-    
+
     container.removeEventListener('pointerdown', onPointerDown);
     document.removeEventListener('pointerup', onPointerUp);
   }
 
+  const isAnnotationClick = () => annotationClick;
+
   return {
     destroy,
     setFilter,
-    setUser
+    setUser,
+    isAnnotationClick
   }
 
 }

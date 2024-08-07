@@ -22,6 +22,8 @@ export interface TextAnnotator<E extends unknown = TextAnnotation> extends Annot
   // Returns true if successful (or false if the annotation is not currently rendered)
   scrollIntoView(annotation: TextAnnotation): boolean;
 
+  isAnnotationClick(): boolean;
+
   state: TextAnnotatorState;
 
 }
@@ -95,6 +97,10 @@ export const createTextAnnotator = <E extends unknown = TextAnnotation>(
     selectionHandler.setUser(user);
   }
 
+  const isAnnotationClick = () => {
+    return selectionHandler.isAnnotationClick();
+  };
+
   const setPresenceProvider = (provider: PresenceProvider) => {
     if (provider) {
       highlightRenderer.setPainter(createPresencePainter(container, provider, opts.presence));
@@ -132,6 +138,7 @@ export const createTextAnnotator = <E extends unknown = TextAnnotation>(
     setSelected,
     setPresenceProvider,
     setVisible,
+    isAnnotationClick,
     on: lifecycle.on,
     off: lifecycle.off,
     scrollIntoView: scrollIntoView(container, store),
